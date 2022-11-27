@@ -35,6 +35,10 @@ fn modulus_mul(a: u32, b: u32, n: u32) -> u32 {
         .expect("unexpected overflow in modulus multiplication")
 }
 
+fn modulus_div(a: u32, b: u32, n: u32) -> u32 {
+    modulus_mul(a, multiplicative_inverse(b, n), n)
+}
+
 fn additive_inverse(a: u32, n: u32) -> u32 {
     u32::try_from((-i64::from(a)).rem_euclid(i64::from(n)))
         .expect("unexpected overflow in modulus additive invesrse")
