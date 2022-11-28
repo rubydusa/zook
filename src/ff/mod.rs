@@ -16,7 +16,7 @@ impl<const P: u32> FieldElement<P> {
         if P == 0 {
             panic!("FieldElement can't have 0 as a modulo")
         }
-        FieldElement { val }
+        FieldElement { val: val % P }
     }
 
     pub fn val(&self) -> u32 {
@@ -25,7 +25,7 @@ impl<const P: u32> FieldElement<P> {
 
     pub fn pow(self, rhs: Self) -> Self {
         Self {
-            val: modulus_exp(self.val, rhs.val, P).expect("something went terribly wrong"),
+            val: modular_arithmetic_unwrap(modulus_exp(self.val, rhs.val, P)),
         }
     }
 }
@@ -35,7 +35,7 @@ impl<const P: u32> Add for FieldElement<P> {
 
     fn add(self, rhs: Self) -> Self::Output {
         Self {
-            val: modulus_add(self.val, rhs.val, P).expect("something went terribly wrong"),
+            val: modular_arithmetic_unwrap(modulus_add(self.val, rhs.val, P)),
         }
     }
 }
@@ -45,7 +45,7 @@ impl<const P: u32> Sub for FieldElement<P> {
 
     fn sub(self, rhs: Self) -> Self::Output {
         Self {
-            val: modulus_sub(self.val, rhs.val, P).expect("something went terribly wrong"),
+            val: modular_arithmetic_unwrap(modulus_sub(self.val, rhs.val, P)),
         }
     }
 }
@@ -55,7 +55,7 @@ impl<const P: u32> Mul for FieldElement<P> {
 
     fn mul(self, rhs: Self) -> Self::Output {
         Self {
-            val: modulus_mul(self.val, rhs.val, P).expect("something went terribly wrong"),
+            val: modular_arithmetic_unwrap(modulus_mul(self.val, rhs.val, P)),
         }
     }
 }
@@ -128,7 +128,7 @@ fn modulus_exp(a: u32, b: u32, n: u32) -> Result<u32, ModularArithmeticError> {
         Ok(1)
     } else {
         let mut acm = 0;
-        let mut cur = 1;
+        let mut cur = a;
         let bits = u32::BITS - b.leading_zeros();
 
         for i in 0..bits {
@@ -184,4 +184,17 @@ fn multiplicative_inverse(a: u32, n: u32) -> Result<u32, ModularArithmeticError>
 
     Ok(u32::try_from(val.rem_euclid(i64::from(n)))
         .expect("multiplicative inverse modulos returned negative value"))
+}
+
+/*
+ * unwraping potential modular arithmetic errors in cases where it should never happen
+ */
+fn modular_arithmetic_unwrap(result: Result<u32, ModularArithmeticError>) -> u32 {
+    match result {
+        Ok(val) => val,
+        Err(err) => match err {
+            ModularArithmeticError::ZeroModulo => panic!("modulo is zero"),
+            ModularArithmeticError::ZeroMultiplicativeInverse => panic!("division by zero"),
+        },
+    }
 }
