@@ -22,6 +22,12 @@ impl<const P: u32> FieldElement<P> {
     pub fn val(&self) -> u32 {
         self.val
     }
+
+    pub fn pow(self, rhs: Self) -> Self {
+        Self {
+            val: modulus_exp(self.val, rhs.val, P).expect("something went terribly wrong"),
+        }
+    }
 }
 
 impl<const P: u32> Add for FieldElement<P> {
@@ -110,6 +116,29 @@ fn modulus_div(a: u32, b: u32, n: u32) -> Result<u32, ModularArithmeticError> {
         Err(ModularArithmeticError::ZeroModulo)
     } else {
         modulus_mul(a, multiplicative_inverse(b, n)?, n)
+    }
+}
+
+fn modulus_exp(a: u32, b: u32, n: u32) -> Result<u32, ModularArithmeticError> {
+    if n == 0 {
+        Err(ModularArithmeticError::ZeroModulo)
+    } else if n == 1 {
+        Ok(0)
+    } else if b == 0 {
+        Ok(1)
+    } else {
+        let mut acm = 0;
+        let mut cur = 1;
+        let bits = u32::BITS - b.leading_zeros();
+
+        for i in 0..bits {
+            cur = modulus_add(cur, cur, n)?;
+            if (b >> i) & 1 == 1 {
+                acm = modulus_add(acm, cur, n)?;
+            }
+        }
+
+        Ok(acm)
     }
 }
 
