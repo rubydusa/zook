@@ -1,5 +1,5 @@
 use std::num::NonZeroU32;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Clone, Copy)]
 pub struct FieldElement<const P: u32> {
@@ -72,6 +72,16 @@ impl<const P: u32> Div for FieldElement<P> {
                 Ok(new_val) => new_val,
                 Err(ModularArithmeticError::NoMultiplicativeInverse) => panic!("gcd(a,n) != 1"),
             },
+        }
+    }
+}
+
+impl<const P: u32> Neg for FieldElement<P> {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            val: modulus_sub(0, self.val, NonZeroU32::new(P).unwrap()),
         }
     }
 }

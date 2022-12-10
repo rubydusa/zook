@@ -1,4 +1,5 @@
-mod ff;
+pub mod ec;
+pub mod ff;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
