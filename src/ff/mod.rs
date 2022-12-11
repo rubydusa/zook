@@ -1,7 +1,7 @@
 use std::num::NonZeroU32;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct FieldElement<const P: u32> {
     val: u32,
 }
