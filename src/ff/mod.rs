@@ -168,3 +168,85 @@ fn multiplicative_inverse(
     )
     .expect("multiplicative_inverse returned 0"))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "FieldElement can't have 0 as a modulo")]
+    fn it_panics_on_modulo_zero() {
+        let _a = FieldElement::<0>::new(1);
+    }
+
+    #[test]
+    fn it_does_not_wrap_on_bigger_modulo() {
+        let a = FieldElement::<5>::new(3);
+        assert_eq!(a.val(), 3);
+    }
+
+    #[test]
+    fn it_becomes_zero_on_equal_modulo() {
+        let a = FieldElement::<5>::new(5);
+        assert_eq!(a.val(), 0);
+    }
+
+    #[test]
+    fn it_wraps_on_smaller_modulo() {
+        let a = FieldElement::<5>::new(7);
+        assert_eq!(a.val(), 2);
+    }
+
+    mod addition {
+        use super::super::*;
+
+        #[test]
+        fn non_overflowing_addition() {
+            let a = FieldElement::<5>::new(1);
+            let b = FieldElement::<5>::new(3);
+
+            assert_eq!((a + b).val(), 4);
+        }
+
+        #[test]
+        fn overflowing_addition() {
+            let a = FieldElement::<5>::new(3);
+            let b = FieldElement::<5>::new(4);
+
+            assert_eq!((a + b).val(), 2);
+        }
+
+        #[test]
+        fn it_is_commutative() {
+            let a = FieldElement::<5>::new(3);
+            let b = FieldElement::<5>::new(4);
+
+            assert_eq!((a + b).val(), (b + a).val());
+        }
+
+        #[test]
+        fn it_is_associative() {
+            let a = FieldElement::<5>::new(2);
+            let b = FieldElement::<5>::new(3);
+            let c = FieldElement::<5>::new(4);
+
+            assert_eq!(((a + b) + c).val(), (a + (b + c)).val());
+        }
+
+        #[test]
+        fn zero_is_identity_element() {
+            let a = FieldElement::<5>::new(3);
+            let zero = FieldElement::<5>::new(0);
+
+            assert_eq!((a + zero).val(), a.val());
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "division by 0")]
+    fn it_panics_on_division_by_zero() {
+        let a = FieldElement::<5>::new(3);
+        let b = FieldElement::<5>::new(0);
+        let _c = a / b;
+    }
+}
